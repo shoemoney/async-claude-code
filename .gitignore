@@ -1,0 +1,61 @@
+# 🚫 Git Ignore for Claude Code Async Runner
+
+# 📦 Dependencies
+node_modules/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+
+# 🔒 Environment & Config
+.env
+.env.local
+.env.production
+config/local.json
+*.key
+*.pem
+
+# 📄 Logs & Temp Files
+*.log
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+# 💾 Cache & Runtime
+.cache/
+.npm/
+.yarn/
+.redis/
+*.pid
+
+# 📊 Coverage & Testing
+coverage/
+.nyc_output/
+.coverage
+.pytest_cache/
+
+# 🔧 IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 📁 Generated Output
+generated/
+output/
+build/
+dist/
+
+# 🐳 Docker
+.dockerignore
+docker-compose.override.yml
+
+# 📦 OS Specific
+.DS_Store
+Thumbs.db
+*.orig
+
+# 🚀 Performance Monitoring
+performance-*.json
+benchmark-*.log
+EOF < /dev/null
