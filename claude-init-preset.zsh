@@ -65,6 +65,7 @@ OPTIONAL_FILES=(
     "examples/"
     "docs/"
     "scripts/"
+    "mcp-server/"
 )
 
 # 🎭 Epic banner! ✨
@@ -195,6 +196,127 @@ copy_optional_files() {
     done
     
     print_color "bright_green" "📚 Optional items: $copied copied successfully!"
+}
+
+# 🔧 Setup MCP server configuration
+setup_mcp_server() {
+    local target_dir="$1"
+    local project_name=$(basename "$target_dir")
+    
+    print_color "bright_cyan" "🔧 Setting up MCP server configuration..."
+    
+    # Create MCP server directory if not already copied
+    if [[ ! -d "$target_dir/mcp-server" ]]; then
+        mkdir -p "$target_dir/mcp-server"
+    fi
+    
+    # Install MCP server dependencies if package.json exists
+    if [[ -f "$target_dir/mcp-server/package.json" ]]; then
+        print_color "cyan" "📦 Installing MCP server dependencies..."
+        (cd "$target_dir/mcp-server" && npm install --silent >/dev/null 2>&1) &
+        local npm_pid=$!
+        
+        # Show spinner while installing
+        local i=0
+        local spinners=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+        while kill -0 $npm_pid 2>/dev/null; do
+            printf "\r${colors[cyan]}${spinners[$((i % 10))]} Installing MCP dependencies...${colors[reset]}"
+            ((i++))
+            sleep 0.1
+        done
+        printf "\r${colors[bright_green]}✅ MCP dependencies installed!          ${colors[reset]}\n"
+    fi
+    
+    # Create MCP configuration snippet for Claude Desktop
+    local mcp_config_file="$target_dir/claude-mcp-config.json"
+    cat > "$mcp_config_file" << EOF
+{
+  "mcpServers": {
+    "async-claude-code-${project_name}": {
+      "command": "node",
+      "args": [
+        "$(realpath "$target_dir/mcp-server/server.js")"
+      ],
+      "env": {
+        "TOOLKIT_PATH": "$(realpath "$target_dir")"
+      }
+    }
+  }
+}
+EOF
+    
+    print_color "bright_green" "🔧 MCP configuration created: claude-mcp-config.json"
+    
+    # Create MCP setup instructions
+    cat > "$target_dir/MCP_SETUP_INSTRUCTIONS.md" << EOF
+# 🚀 MCP Server Setup for Async Claude Code Toolkit
+
+## 🎯 Quick Setup
+
+### 1. 📋 **Add to Claude Desktop Configuration**
+Add this to your Claude Desktop configuration file:
+
+**macOS**: \`~/Library/Application Support/Claude/claude_desktop_config.json\`
+**Windows**: \`%APPDATA%/Claude/claude_desktop_config.json\`
+
+\`\`\`json
+{
+  "mcpServers": {
+    "async-claude-code-${project_name}": {
+      "command": "node",
+      "args": [
+        "$(realpath "$target_dir/mcp-server/server.js")"
+      ],
+      "env": {
+        "TOOLKIT_PATH": "$(realpath "$target_dir")"
+      }
+    }
+  }
+}
+\`\`\`
+
+### 2. 🔄 **Restart Claude Desktop**
+After adding the configuration, restart Claude Desktop to load the MCP server.
+
+### 3. ✅ **Verify Installation**
+In Claude Desktop, you should see the async toolkit functions available as tools:
+- \`claude-perf-status\` - Check performance metrics
+- \`run-claude-parallel\` - Execute parallel prompts
+- \`cc-cache\` / \`cc-get\` - Redis caching operations
+- \`batch-file-processor\` - Process files in batches
+- And 20+ more functions!
+
+## 🛠️ Manual Testing
+You can test the MCP server directly:
+\`\`\`bash
+cd mcp-server
+node server.js
+\`\`\`
+
+## 📚 Available Functions
+The MCP server exposes 25+ toolkit functions including:
+- Performance monitoring and optimization
+- Parallel Claude execution
+- Redis caching operations  
+- Batch file processing
+- Git automation
+- Database operations
+- Testing utilities
+
+## 🆘 Troubleshooting
+- Ensure Node.js is installed (v18+)
+- Check that all dependencies are installed: \`cd mcp-server && npm install\`
+- Verify the toolkit path in the configuration
+- Check Claude Desktop logs for connection issues
+
+---
+
+🚀 **MCP Server Ready**: The async toolkit is now available in Claude Desktop!  
+📺 **Inspired by**: IndyDevDan's tutorials  
+🔗 **Repository**: https://github.com/shoemoney/async-claude-code
+EOF
+
+    print_color "bright_green" "📋 MCP setup instructions created!"
 }
 
 # 🎨 Create custom CLAUDE.md for new project
@@ -451,7 +573,10 @@ show_completion_summary() {
     print_color "cyan" "   ⚡ claude_functions.zsh - 40+ utility functions"
     print_color "cyan" "   🧪 tests/ - Comprehensive test suite"
     print_color "cyan" "   🔧 modules/ - Specialized modules"
-    print_color "cyan" "   📋 ASYNC_TOOLKIT_SETUP.md - Setup guide"
+    print_color "cyan" "   🔧 mcp-server/ - MCP server for Claude Desktop"
+    print_color "cyan" "   📋 claude-mcp-config.json - MCP configuration"
+    print_color "cyan" "   📋 MCP_SETUP_INSTRUCTIONS.md - MCP setup guide"
+    print_color "cyan" "   📋 ASYNC_TOOLKIT_SETUP.md - General setup guide"
     echo ""
     
     print_rainbow "🏆⚡🚀 PROJECT $project_name IS NOW SUPERCHARGED! 🚀⚡🏆"
@@ -500,6 +625,7 @@ main() {
     copy_test_files "$target_dir"
     copy_module_files "$target_dir"
     copy_optional_files "$target_dir"
+    setup_mcp_server "$target_dir"
     create_custom_claude_md "$target_dir"
     setup_permissions "$target_dir"
     create_installation_guide "$target_dir"

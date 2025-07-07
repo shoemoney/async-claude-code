@@ -94,8 +94,15 @@ copy_toolkit_to_preset() {
     # Copy all toolkit files
     cp -r "$TOOLKIT_DIR"/* "$preset_toolkit_dir/" 2>/dev/null
     
+    # Install MCP server dependencies if package.json exists
+    if [[ -f "$preset_toolkit_dir/mcp-server/package.json" ]]; then
+        print_color "cyan" "📦 Installing MCP server dependencies..."
+        (cd "$preset_toolkit_dir/mcp-server" && npm install --silent >/dev/null 2>&1)
+        print_color "bright_green" "✅ MCP dependencies installed!"
+    fi
+    
     # Ensure key files are present
-    local key_files=("optimize-claude-performance.zsh" "claude_functions.zsh" "CLAUDE.md" "claude-rules-commands.md")
+    local key_files=("optimize-claude-performance.zsh" "claude_functions.zsh" "CLAUDE.md" "claude-rules-commands.md" "mcp-server/package.json")
     local missing_files=()
     
     for file in "${key_files[@]}"; do

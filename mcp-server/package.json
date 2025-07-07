@@ -1,0 +1,36 @@
+{
+  "name": "async-claude-code-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Async Claude Code Toolkit - 40+ functions for 10x faster development",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "async",
+    "performance",
+    "toolkit",
+    "productivity"
+  ],
+  "author": "shoemoney",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "zx": "^7.2.3",
+    "redis": "^4.6.12",
+    "mysql2": "^3.6.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shoemoney/async-claude-code.git"
+  },
+  "homepage": "https://github.com/shoemoney/async-claude-code#readme"
+}

@@ -46,6 +46,19 @@ cd async-claude-code
 claude init --preset=async-claude-code /path/to/new/project
 ```
 
+### **Option 4: Claude Desktop MCP Integration** 🔧
+```bash
+# Clone and setup MCP server
+git clone https://github.com/shoemoney/async-claude-code.git
+cd async-claude-code/mcp-server
+
+# Install MCP dependencies
+./install-dependencies.zsh
+
+# Add to Claude Desktop config (see MCP_SETUP_INSTRUCTIONS.md)
+# Access 25+ toolkit functions directly in Claude Desktop!
+```
+
 ---
 
 ## 🔧 **Detailed Installation Steps**
@@ -71,6 +84,9 @@ sudo apt install nodejs npm    # Ubuntu/Debian
 
 # Docker (for container operations)
 # Install from: https://docker.com
+
+# Node.js (for MCP server integration with Claude Desktop)
+# Required for accessing toolkit functions in Claude Desktop
 ```
 
 ---
@@ -228,6 +244,54 @@ cat ~/.claude/ASYNC_PRESET_USAGE.md
 # Test the preset
 zsh ~/.claude/presets/async-claude-code/init.zsh ./test-project
 ```
+
+---
+
+## 🔧 **Method 4: Claude Desktop MCP Integration**
+
+### Step 1: Setup MCP Server
+```bash
+# Clone the repository
+git clone https://github.com/shoemoney/async-claude-code.git
+cd async-claude-code/mcp-server
+
+# Install Node.js dependencies
+./install-dependencies.zsh
+```
+
+### Step 2: Configure Claude Desktop
+Add this to your Claude Desktop configuration file:
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "async-claude-code": {
+      "command": "node",
+      "args": [
+        "/full/path/to/async-claude-code/mcp-server/server.js"
+      ],
+      "env": {
+        "TOOLKIT_PATH": "/full/path/to/async-claude-code"
+      }
+    }
+  }
+}
+```
+
+### Step 3: Restart Claude Desktop
+After adding the configuration, restart Claude Desktop to load the MCP server.
+
+### Step 4: Verify MCP Integration
+In Claude Desktop, you should now have access to 25+ toolkit functions:
+- `claude-perf-status` - Performance monitoring
+- `run-claude-parallel` - Parallel prompt execution
+- `cc-cache` / `cc-get` - Redis caching operations
+- `batch-file-processor` - Batch file processing
+- `git-commit-generator` - Smart commit messages
+- And many more!
 
 ---
 
