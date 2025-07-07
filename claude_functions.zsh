@@ -994,6 +994,245 @@ claude_functions_status() {
     echo "  🔧 Utils: project_cleaner, dependency_checker, security_scanner, backup_creator"
 }
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🗜️ CONTEXT CHECKING & COMPRESSION FUNCTIONS - Smart Context Management! 📊
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# 📊 claude-context-check - Check current context size and suggest compression
+# 🎯 Usage: claude-context-check [threshold] [auto_compress]
+# 📝 Examples:
+#   claude-context-check                    # Check with default 8000 token threshold
+#   claude-context-check 6000              # Custom threshold
+#   claude-context-check 8000 true         # Auto-compress if over threshold
+claude-context-check() {
+    # 🆘 Check for help flag
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "📊 claude-context-check - Check current context size and suggest compression"
+        echo ""
+        echo "🎯 Usage:"
+        echo "  claude-context-check [threshold] [auto_compress]"
+        echo ""
+        echo "📝 Parameters:"
+        echo "  threshold      🎯 Token threshold for warnings (default: 8000)"
+        echo "  auto_compress  🤖 Auto-compress if over threshold (default: false)"
+        echo ""
+        echo "📋 Examples:"
+        echo "  claude-context-check                # Check with 8000 token threshold"
+        echo "  claude-context-check 6000           # Custom 6000 token threshold"
+        echo "  claude-context-check 8000 true      # Auto-compress if over 8000"
+        echo ""
+        echo "🎯 Return codes:"
+        echo "  0 = Context healthy"
+        echo "  1 = Unable to check context"
+        echo "  2 = Context over threshold"
+        return 0
+    fi
+
+    local threshold="${1:-8000}"
+    local auto_compress="${2:-false}"
+    
+    echo "📊 Checking context status..."
+    
+    # Get current token count using claude tokens command
+    local token_output=$(claude tokens 2>/dev/null)
+    local tokens=$(echo "$token_output" | grep -o '[0-9,]*' | tr -d ',' | head -1)
+    
+    if [[ -z "$tokens" || "$tokens" == "" ]]; then
+        echo "❓ Unable to determine context size"
+        echo "💡 Try running this in a Claude Code session"
+        return 1
+    fi
+    
+    echo "📊 Current context: $tokens tokens"
+    
+    if [[ "$tokens" -gt "$threshold" ]]; then
+        echo "🚨 Context exceeds threshold ($threshold tokens)"
+        
+        if [[ "$auto_compress" == "true" ]]; then
+            echo "🗜️ Auto-compressing at 35%..."
+            claude compress 35
+        else
+            echo "💡 Recommend: claude compress 35"
+        fi
+        return 2
+    else
+        echo "✅ Context size is healthy ($tokens < $threshold)"
+        return 0
+    fi
+}
+
+# 🧠 claude-smart-compress - Smart compression with context awareness and 35% default
+# 🎯 Usage: claude-smart-compress [force_ratio]
+# 📝 Examples:
+#   claude-smart-compress           # Auto-select ratio based on context
+#   claude-smart-compress 42        # Force 42% compression
+claude-smart-compress() {
+    # 🆘 Check for help flag
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "🧠 claude-smart-compress - Smart compression with context awareness"
+        echo ""
+        echo "🎯 Usage:"
+        echo "  claude-smart-compress [force_ratio]"
+        echo ""
+        echo "📝 Parameters:"
+        echo "  force_ratio    🎯 Force specific compression ratio (optional)"
+        echo ""
+        echo "📋 Examples:"
+        echo "  claude-smart-compress           # Auto-select based on context size"
+        echo "  claude-smart-compress 42        # Force 42% compression"
+        echo ""
+        echo "🎯 Auto-selection rules:"
+        echo "  > 12000 tokens: 20% compression (heavy)"
+        echo "  > 8000 tokens:  35% compression (your default)"
+        echo "  > 6000 tokens:  50% compression (light)"
+        echo "  < 6000 tokens:  35% compression (your preferred default)"
+        return 0
+    fi
+
+    local force_ratio="$1"  # Optional: force a specific ratio
+    local light_threshold=6000
+    local medium_threshold=8000  
+    local heavy_threshold=12000
+    
+    echo "🧠 Smart compression with context analysis..."
+    
+    # Get current token count
+    local token_output=$(claude tokens 2>/dev/null)
+    local tokens=$(echo "$token_output" | grep -o '[0-9,]*' | tr -d ',' | head -1)
+    
+    if [[ -z "$tokens" || "$tokens" == "" ]]; then
+        echo "❓ Cannot determine context size, using your default 35%"
+        echo "🗜️ Compressing at 35%..."
+        claude compress 35
+        return
+    fi
+    
+    echo "📊 Current context: $tokens tokens"
+    
+    # Use forced ratio if provided
+    if [[ -n "$force_ratio" ]]; then
+        echo "🎯 Using specified ratio: ${force_ratio}%"
+        claude compress "$force_ratio"
+        return
+    fi
+    
+    # Smart ratio selection based on context size
+    if [[ "$tokens" -gt "$heavy_threshold" ]]; then
+        echo "🔥 CRITICAL: Heavy compression needed (20%)"
+        claude compress 20
+    elif [[ "$tokens" -gt "$medium_threshold" ]]; then
+        echo "⚖️ HIGH: Your preferred 35% compression"
+        claude compress 35
+    elif [[ "$tokens" -gt "$light_threshold" ]]; then
+        echo "🪶 MEDIUM: Light compression (50%)"
+        claude compress 50
+    else
+        echo "✅ LOW: Context healthy, but using your preferred 35%"
+        claude compress 35
+    fi
+}
+
+# 🎯 claude-compress35 - Quick compression at your preferred 35%
+# 🎯 Usage: claude-compress35
+# 📝 Examples:
+#   claude-compress35                       # Compress at 35%
+claude-compress35() {
+    # 🆘 Check for help flag
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "🎯 claude-compress35 - Quick compression at your preferred 35%"
+        echo ""
+        echo "🎯 Usage:"
+        echo "  claude-compress35"
+        echo ""
+        echo "📝 Description:"
+        echo "  Quick shortcut to compress at your preferred 35% ratio"
+        echo "  Equivalent to: claude compress 35"
+        echo ""
+        echo "📋 Examples:"
+        echo "  claude-compress35           # Compress at 35%"
+        echo "  c35                        # If you create an alias"
+        return 0
+    fi
+
+    echo "🎯 Compressing at your preferred 35%..."
+    claude compress 35
+}
+
+# 📈 claude-context-status - Detailed context analysis with breakdown
+# 🎯 Usage: claude-context-status [warn_threshold] [critical_threshold]
+# 📝 Examples:
+#   claude-context-status                   # Default thresholds (6000, 8000)
+#   claude-context-status 5000 7000        # Custom thresholds
+claude-context-status() {
+    # 🆘 Check for help flag
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "📈 claude-context-status - Detailed context analysis with breakdown"
+        echo ""
+        echo "🎯 Usage:"
+        echo "  claude-context-status [warn_threshold] [critical_threshold]"
+        echo ""
+        echo "📝 Parameters:"
+        echo "  warn_threshold      ⚠️ Warning threshold in tokens (default: 6000)"
+        echo "  critical_threshold  🚨 Critical threshold in tokens (default: 8000)"
+        echo ""
+        echo "📋 Examples:"
+        echo "  claude-context-status                # Use defaults (6000, 8000)"
+        echo "  claude-context-status 5000 7000     # Custom thresholds"
+        echo ""
+        echo "📊 Shows:"
+        echo "  - Raw token information"
+        echo "  - Percentage of thresholds reached"
+        echo "  - Status color coding"
+        echo "  - Recommended actions"
+        return 0
+    fi
+
+    local warn_threshold="${1:-6000}"
+    local critical_threshold="${2:-8000}"
+    
+    echo "📈 Detailed context analysis..."
+    
+    # Get full token information
+    local token_output=$(claude tokens 2>/dev/null)
+    
+    if [[ -z "$token_output" ]]; then
+        echo "❌ Unable to get context information"
+        echo "💡 Make sure you're in a Claude Code session"
+        return 1
+    fi
+    
+    echo "📊 Raw token info:"
+    echo "$token_output" | while read line; do
+        echo "   $line"
+    done
+    
+    local tokens=$(echo "$token_output" | grep -o '[0-9,]*' | tr -d ',' | head -1)
+    
+    if [[ -n "$tokens" && "$tokens" != "" ]]; then
+        echo ""
+        echo "📊 Analysis:"
+        
+        # Calculate percentages of limits
+        local warn_percent=$((tokens * 100 / warn_threshold))
+        local critical_percent=$((tokens * 100 / critical_threshold))
+        
+        echo "   Current: $tokens tokens"
+        echo "   Warning at: $warn_threshold tokens ($warn_percent% of warning)"
+        echo "   Critical at: $critical_threshold tokens ($critical_percent% of critical)"
+        
+        echo ""
+        if [[ "$tokens" -gt "$critical_threshold" ]]; then
+            echo "🔴 STATUS: CRITICAL - Immediate compression recommended!"
+            echo "🚨 Recommended action: claude-smart-compress"
+        elif [[ "$tokens" -gt "$warn_threshold" ]]; then
+            echo "🟡 STATUS: WARNING - Consider compression soon"
+            echo "💡 Suggested action: claude-smart-compress"
+        else
+            echo "🟢 STATUS: HEALTHY - Context size is optimal"
+        fi
+    fi
+}
+
 # 🆘 claude_functions_help - Show detailed help
 # 🎯 Usage: claude_functions_help [function_name]
 claude_functions_help() {
@@ -1027,6 +1266,7 @@ claude_functions_help() {
         echo "    batch_file_processor -h"
         echo ""
         echo "📚 Function Categories:"
+        echo "  🗜️ CONTEXT: claude-context-check, claude-smart-compress, claude-compress35, claude-context-status"
         echo "  💾 CACHE: cc-cache, cc-get, cc-del, cc-stats, cc-flush"
         echo "  🗄️ DATABASE: mysql_async_insert, postgres_async_query, sqlite_backup_async"
         echo "  📁 FILES: batch_file_processor, markdown_enhancer, css_optimizer, json_validator"
@@ -1046,7 +1286,8 @@ claude_functions_help() {
 # 🎉 Show welcome message when sourced
 echo ""
 echo "🎉 Claude Functions Loaded! ($CLAUDE_FUNCTIONS_VERSION)"
-echo "💫 40+ Async utility functions ready for action!"
+echo "💫 45+ Async utility functions ready for action!"
+echo "🗜️ NEW: Smart context compression with your 35% default!"
 echo "🆘 Type 'claude_functions_help' for help"
 echo "📊 Type 'claude_functions_status' for status"
 echo "💡 NEW: All functions support -h flag! (e.g., cc-cache -h)"

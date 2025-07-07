@@ -2,6 +2,26 @@
 
 ## 🚀 Core Async Toolkit Commands
 
+### 🗜️ **Context Checking & Smart Compression**
+```bash
+# 📊 Context Analysis Commands
+claude-context-check [threshold] [auto_compress]    # Check context size with optional auto-compress
+claude-context-status [warn] [critical]             # Detailed context breakdown and analysis
+claude-smart-compress [force_ratio]                 # Smart compression based on context size
+claude-compress35                                    # Quick compression at your preferred 35%
+
+# 🎯 Context Examples
+claude-context-check                                 # Check with 8000 token default threshold
+claude-context-check 6000 true                      # Auto-compress if over 6000 tokens
+claude-smart-compress                                # Auto-select compression ratio
+claude-smart-compress 42                             # Force 42% compression
+claude-compress35                                    # Always compress at your preferred 35%
+
+# 📈 Advanced Context Management
+claude-context-status                                # Full analysis with thresholds (6000, 8000)
+claude-context-status 5000 7000                     # Custom warning/critical thresholds
+```
+
 ### ⚡ **Performance & Optimization**
 ```bash
 # 🎯 Essential Setup Commands
@@ -150,6 +170,33 @@ claude_functions_list                     # List all available functions
 claude_generate_docs                      # Generate function documentation
 claude_examples_show [category]           # Show usage examples
 claude_changelog                         # View toolkit changelog
+```
+
+### 🔥 **Quick Aliases (Add to ~/.zshrc)**
+```bash
+# 🗜️ Context & Compression Shortcuts
+alias ctx='claude-context-check'          # Quick context check
+alias cca='claude-context-check 8000 true' # Auto-compress check
+alias c35='claude-compress35'             # Your preferred 35% compression
+alias csc='claude-smart-compress'         # Smart compression
+alias cs='claude-context-status'          # Context status
+
+# ⚡ Performance Shortcuts  
+alias cps='claude-perf-status'            # Performance status
+alias cpt='claude-perf-tune'              # Performance tune
+
+# 💾 Cache Shortcuts
+alias cset='cc-cache'                     # Cache set
+alias cget='cc-get'                       # Cache get  
+alias cstats='cc-stats'                   # Cache stats
+
+# 📁 File Processing Shortcuts
+alias bfp='batch_file_processor'          # Batch file processor
+alias me='markdown_enhancer'              # Markdown enhancer
+
+# 🆘 Help Shortcuts
+alias cfh='claude_functions_help'         # Functions help
+alias cfs='claude_functions_status'       # Functions status
 ```
 
 ## 🛡️ **Coding Rules & Best Practices**
